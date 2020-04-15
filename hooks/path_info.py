@@ -119,7 +119,6 @@ class BasicPathInfo(HookBaseClass):
 
         # if there's a version in the filename, extract it
         version_pattern_match = re.search(VERSION_REGEX, filename)
-        #version_pattern_match = VERSION_REGEX.search(filename)
 
         if version_pattern_match:
             version_number = int(version_pattern_match.group(3))
