@@ -9,6 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import traceback
+from functools import partial
 
 import sgtk
 from sgtk.platform.qt import QtCore, QtGui
@@ -122,12 +123,12 @@ class AppDialog(QtGui.QWidget):
         self.ui.drag_progress_message.hide()
 
         # buttons
-        self.ui.publish.clicked.connect(self.do_publish)
+        self.ui.publish.clicked.connect(partial(self.do_publish))
         self.ui.close.clicked.connect(self.close)
         self.ui.close.hide()
         # do_validate is invoked using a lambda function because it receives custom parameters
         # https://eli.thegreenplace.net/2011/04/25/passing-extra-arguments-to-pyqt-slot/
-        self.ui.validate.clicked.connect(lambda: self.do_validate())
+        self.ui.validate.clicked.connect(partial(self.do_validate))
 
         # overlay
         self._overlay = SummaryOverlay(self.ui.main_frame)
@@ -152,10 +153,8 @@ class AppDialog(QtGui.QWidget):
 
         # tool buttons
         self.ui.delete_items.clicked.connect(self._delete_selected)
-        self.ui.expand_all.clicked.connect(lambda: self._set_tree_items_expanded(True))
-        self.ui.collapse_all.clicked.connect(
-            lambda: self._set_tree_items_expanded(False)
-        )
+        self.ui.expand_all.clicked.connect(partial(self._set_tree_items_expanded, True))
+        self.ui.collapse_all.clicked.connect(partial(self._set_tree_items_expanded,False))
         self.ui.refresh.clicked.connect(self._full_rebuild)
 
         # stop processing logic
@@ -168,7 +167,7 @@ class AppDialog(QtGui.QWidget):
         help_url = self._bundle.get_setting("help_url")
         if help_url:
             # connect the help button to the help url provided in the settings
-            self.ui.help.clicked.connect(lambda: self._open_url(help_url))
+            self.ui.help.clicked.connect(partial(self._open_url, help_url))
         else:
             # no url. hide the button!
             self.ui.help.hide()
@@ -714,13 +713,15 @@ class AppDialog(QtGui.QWidget):
 
         # iterate over all the tree items to find currently used contexts
         current_contexts = {}
-        for it in QtGui.QTreeWidgetItemIterator(self.ui.items_tree):
+        it = QtGui.QTreeWidgetItemIterator(self.ui.items_tree)
+        while it.value():
             item = it.value()
             publish_instance = item.get_publish_instance()
             if isinstance(publish_instance, PublishItem):
                 context = publish_instance.context
                 context_key = str(context)
                 current_contexts[context_key] = context
+            it += 1
 
         if len(current_contexts) == 1:
             # only one context being used by current items. prepopulate it in
@@ -902,10 +903,13 @@ class AppDialog(QtGui.QWidget):
         :param boole expanded: Expand if True, Collapse otherwise
         """
 
-        for it in QtGui.QTreeWidgetItemIterator(self.ui.items_tree):
+        it = QtGui.QTreeWidgetItemIterator(self.ui.items_tree)
+        while it.value():
             item = it.value()
             if isinstance(item, TopLevelTreeNodeItem):
                 item.setExpanded(expanded)
+            it+=1
+
 
     def _delete_selected(self):
         """

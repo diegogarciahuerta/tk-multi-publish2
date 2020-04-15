@@ -160,7 +160,7 @@ class ProgressHandler(object):
 
         # set phase icon in logger
         if self._current_phase is None:
-            icon = None
+            icon = QtGui.QPixmap()
         elif status == self.ERROR:
             icon = self._icon_error
         elif status == self.WARNING:
@@ -168,6 +168,7 @@ class ProgressHandler(object):
         else:
             icon = self._icon_lookup[self._current_phase]
 
+        logger.debug("self._current_phase: %s" % self._current_phase)
         self._icon_label.setPixmap(icon)
 
         item = QtGui.QTreeWidgetItem(self._logging_parent_item)
@@ -192,7 +193,7 @@ class ProgressHandler(object):
         item.setText(0, message)
 
         if icon:
-            item.setIcon(0, icon)
+            item.setIcon(0, QtGui.QIcon(icon))
 
         if self._logging_parent_item:
             self._logging_parent_item.addChild(item)
@@ -278,11 +279,11 @@ class ProgressHandler(object):
             self._logging_parent_item.addChild(item)
 
         if icon:
-            item.setIcon(0, icon)
+            item.setIcon(0, QtGui.QIcon(icon))
             self._icon_label.setPixmap(icon)
         elif self._current_phase:
             std_icon = self._icon_lookup[self._current_phase]
-            item.setIcon(0, std_icon)
+            item.setIcon(0, QtGui.QIcon(std_icon))
             self._icon_label.setPixmap(std_icon)
 
         self._progress_details.log_tree.setCurrentItem(item)
